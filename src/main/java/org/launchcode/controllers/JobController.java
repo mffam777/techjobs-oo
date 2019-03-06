@@ -1,7 +1,8 @@
 package org.launchcode.controllers;
 
-import org.launchcode.models.forms.JobForm;
+import org.launchcode.models.*;
 import org.launchcode.models.data.JobData;
+import org.launchcode.models.forms.JobForm;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
@@ -23,7 +24,10 @@ public class JobController {
     @RequestMapping(value = "", method = RequestMethod.GET)
     public String index(Model model, int id) {
 
-        // TODO #1 - get the Job with the given ID and pass it into the view
+        // TODO #1 - **Completed** get the Job with the given ID and pass it into the view
+
+        Job job = jobData.findById(id);
+        model.addAttribute("job", job);
 
         return "job-detail";
     }
@@ -37,11 +41,32 @@ public class JobController {
     @RequestMapping(value = "add", method = RequestMethod.POST)
     public String add(Model model, @Valid JobForm jobForm, Errors errors) {
 
-        // TODO #6 - Validate the JobForm model, and if valid, create a
+        // TODO #6 - **Completed** Validate the JobForm model, and if valid, create a
         // new Job and add it to the jobData data store. Then
         // redirect to the job detail view for the new Job.
 
-        return "";
+        if (errors.hasErrors()) {
+            return "new-job";
+        }
+
+        // generate properties of newly created jobs from job form
+        String jobName = jobForm.getName();
+        Employer jobEmp = jobData.getEmployers().findById(jobForm.getEmployerId());
+        Location jobLoc = jobData.getLocations().findById(jobForm.getLocationId());
+        PositionType jobPos = jobData.getPositionTypes().findById(jobForm.getPositionTypeId());
+        CoreCompetency jobComp = jobData.getCoreCompetencies().findById(jobForm.getCoreCompetenciesId());
+
+        // new job construct method
+        Job newJob = new Job(jobName, jobEmp, jobLoc, jobPos, jobComp);
+
+        // add new jobs to the jobData
+        jobData.add(newJob);
+
+        // add job id
+        attributes.addAttribute("id", newJob.getId());
+
+        // display details of newly added jobs
+        return "redirect:/job";
 
     }
 }
